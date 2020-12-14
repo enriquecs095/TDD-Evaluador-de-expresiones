@@ -1,0 +1,14 @@
+﻿  ExpresionPrefija.cpp
+C:\Users\Enrique\source\repos\TestingExpressions\TestingExpressions\ExpresionPrefija.cpp(372,37): warning C4244: '=': conversión de '_Ty' a 'int'; posible pérdida de datos
+          with
+          [
+              _Ty=double
+          ]
+C:\Users\Enrique\source\repos\TestingExpressions\TestingExpressions\ExpresionPrefija.cpp(379,37): warning C4244: '=': conversión de '_Ty' a 'int'; posible pérdida de datos
+          with
+          [
+              _Ty=double
+          ]
+C:\Users\Enrique\source\repos\TestingExpressions\TestingExpressions\ExpresionPrefija.cpp(519,33): warning C5051: el atributo "fallthrough" requiere al menos "/std:c++17"; se ha ignorado
+     Creando biblioteca C:\Users\Enrique\source\repos\TestingExpressions\Debug\TestingExpressions.lib y objeto C:\Users\Enrique\source\repos\TestingExpressions\Debug\TestingExpressions.exp
+  TestingExpressions.vcxproj -> C:\Users\Enrique\source\repos\TestingExpressions\Debug\TestingExpressions.dll
