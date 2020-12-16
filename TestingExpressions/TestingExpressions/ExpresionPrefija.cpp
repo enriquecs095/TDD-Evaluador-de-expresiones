@@ -2,8 +2,11 @@
 #include "CppUnitTest.h"
 #include <vector>
 #include <iostream>
+#include <variant>//c++17
+#include <optional>
+#include <optional>
+#include <cassert>
 #define E "2.71" 
-//#define PI "3.14"
 template<typename T> //c++14
 constexpr T constantPI = T("3.14");
 
@@ -19,6 +22,7 @@ namespace TestingExpressions
 		std::string ErrorMatematico = "";
 		char* emptyError = nullptr; //c++11
 		std::string BigResult;
+
 		TEST_METHOD(Prueba1)
 		{
 			std::string expresion = "";
@@ -28,7 +32,7 @@ namespace TestingExpressions
 
 		TEST_METHOD(Prueba2)
 		{
-			std::string expresion = "10+20*wwfee3()12";
+			std::string expresion = "13*((12+49)+(15+40))";
 			bool valueResult = Result(expresion);
 			Assert::IsTrue(valueResult, errorMessage);
 		};
@@ -111,12 +115,21 @@ namespace TestingExpressions
 			bool valueResult = Result(expresion);
 			Assert::IsTrue(valueResult, errorMessage);
 			Assert::AreEqual(this->BigResult, resultado);
+		};
+
+		TEST_METHOD(Prueba12)
+		{
+			std::string expresion = "13*((12+49)+(15+40))";
+			std::string resultado = "1508.000000";
+			bool valueResult = Result(expresion);
+			Assert::IsTrue(valueResult, errorMessage);
+			Assert::AreEqual(this->BigResult, resultado);
 		}
 
 		void LoadMessageError(std::string message) {
 			errorMessage = new wchar_t[message.length() + 1];
-			auto begin = std::begin(message); //c++ 11  auto y begin con std::begin
-			auto end = std::end(message);
+			auto begin = std::begin(message); //c++ 11  auto 
+			auto end = std::end(message);//c++11 std::begin and std::end
 			std::copy(begin, end, errorMessage);
 			errorMessage[message.length()] = 0;
 		}
@@ -127,7 +140,6 @@ namespace TestingExpressions
 			decltype(message) mensajeError; //c++14
 			emptyError = new char[24];
 			emptyError = "Expresion vacia, revise";
-			char value = u8'e'; //c++17
 			if (expresion.empty()) {
 				message = emptyError;
 				LoadMessageError(message);
@@ -174,17 +186,17 @@ namespace TestingExpressions
 							return false;
 						}
 					}
-					//si no se añade un operador antes del parentesis
-					else if (Expresion[i] != 37 || Expresion[i] != 42 || Expresion[i] != 43 || Expresion[i] != 45 ||
-						Expresion[i] != 47 || Expresion[i] != 94) {
+					//si no se añade un operador antes del parentesis**********el 40
+					else if (Expresion[i] != 37 && Expresion[i] != 40 && Expresion[i] != 42 && Expresion[i] != 43 &&
+						Expresion[i] != 45 && Expresion[i] != 47 && Expresion[i] != 94) {
 						if (Expresion[i + 1] == 40) {
 							pos = i+1;
 							return false;
 						}
 					}
-					//si no se añade un operador despues del parentesis de cierre
+					//si no se añade un operador despues del parentesis de cierre*******el 41
 					else if (Expresion[i] == 41) {
-						if (Expresion[i + 1] != 37 || Expresion[i + 1] != 42 || Expresion[i + 1] != 43 || Expresion[i + 1] != 45 ||
+						if (Expresion[i + 1] != 37 || Expresion[i + 1] != 41 || Expresion[i + 1] != 42 || Expresion[i + 1] != 43 || Expresion[i + 1] != 45 ||
 							Expresion[i + 1] != 47 || Expresion[i + 1] != 94) {
 							pos = i;
 							return false;
@@ -263,6 +275,10 @@ namespace TestingExpressions
 		}
 
 		bool ConvertirPostFija(std::string Expresion) {
+			std::optional<std::string> piConstante = "p";//c++17
+			std::optional<std::string> eConstante = "e";//c++17
+			char parentesisAbierto = u8'('; //c++17 formatos u8
+			char parentesisCerrado = u8')'; //c++17 formatos u8
 			std::vector<std::string> pilaAuxiliar;
 			std::vector<std::string> pilaSalida;
 			std::string auxiliar;
@@ -324,23 +340,20 @@ namespace TestingExpressions
 			return ConvertirConstantes(pilaSalida);
 		}
 
-		int Prioridad(std::string operador) {
-			if (operador == "+" || operador == "-") {
-				return 1;
-			}
-			else if (operador == "%") {
-				return 2;
-			}
-			else if (operador == "/" || operador == "*") {
-				return 3;
-			}
-			else if (operador == "^") {
-				return 4;
-			}
-			return 0;
+		int Prioridad(std::string operadorP) {
+			int result;
+			auto prioridad = [](std::string operador)->int {//c++11
+				return operador == "+" || operador == "-" ? 1 :
+					operador == "%" ? 2 :
+					operador == "/" || operador == "*" ? 3 :
+					operador == "^" ? 4 :
+					0;
+			};
+			return result = prioridad(operadorP);
 		}
 
 		bool ConvertirConstantes(std::vector<std::string> expresion) {
+
 			for (size_t i = 0; i < expresion.size(); i++)
 			{
 				if (std::strcmp(expresion[i].c_str(), "p") == 0) {
@@ -356,6 +369,8 @@ namespace TestingExpressions
 
 		bool OperacionesMatematicas(std::vector<std::string> expresion) {
 			std::vector<double> resultado;
+			std::variant<double, int>valor;//c++17 el tipo de dato puede variar
+			constexpr std::byte byteZero{ 0x00 };//c++17 para declarar variables de un byte
 			double number1 = 0;
 			double number2 = 0;
 			int number2Module = 0;
@@ -379,7 +394,7 @@ namespace TestingExpressions
 						number1Module = resultado.back();
 						resultado.pop_back();
 					}
-					if (!number2Module) {//modular con denominador 0
+					if (!number2Module) {//[[fallthrough]]//modular con denominador 0     c++17
 						this->ErrorMatematico = "El modular no puede ser con denominador 0 ";
 						return false;
 					}
@@ -455,7 +470,7 @@ namespace TestingExpressions
 						number1 = resultado.back();
 						resultado.pop_back();
 					}
-					if (!number2) {//divisiones con denominador 0
+					if (!number2) {//[[fallthrough]] //c++17 el compilador cae ahi como previsto divisiones con denominador 0
 						this->ErrorMatematico = "La division no puede ser con denominador 0 ";
 						return false;
 						break;
@@ -495,39 +510,29 @@ namespace TestingExpressions
 			return true;
 		}
 
-		enum class PrioridadRango { UNO, DOS, TRES, CUATRO, CERO };
 
-		 
-
-		auto Prioridadd(PrioridadRango p) {//c++ 14 clases auto
-			 // c++ 11
-			size_t number { 0 };
-			switch (p) {
-			case PrioridadRango::UNO:
-				number=1;
-				break;
-			case PrioridadRango::DOS:
-				number = 2;
-				break;
-			case PrioridadRango::TRES:
-				number = 3;
-				break;
-			case PrioridadRango::CUATRO:
-				 number = 4;
-				break;
-
-			case PrioridadRango::CERO: [[fallthrough]]//c++17 el compilador cae ahi como previsto
-				number = 0;
-				break;
-			}
-			return number;
-		}
-
-
-		//c++14
-		[[deprecated("Funcion no necesaria en el proyecto")]] std::string VerResultado() {
+		//c++14 deprecated cuando algo no es necesario
+		[[deprecated("Funcion no necesaria en el proyecto")]] auto VerResultado() {//c++ 14 clases auto
 			return  this->BigResult;
 		}
 
 	};
 }
+
+
+/*if (operador == "+" || operador == "-") {
+		return 1;
+	}
+	else if (operador == "%") {
+		return 2;
+	}
+	else if (operador == "/" || operador == "*") {
+		return 3;
+	}
+	else if (operador == "^") {
+		return 4;
+	}
+	else {	[[fallthrough]]//c++17 el compilador cae ahi como previsto
+		return 0;
+	}
+	return -1;*/
